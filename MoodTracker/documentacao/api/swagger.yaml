@@ -1,0 +1,621 @@
+openapi: 3.0.0
+info:
+  title: MoodTracker API
+  description: API REST para aplicativo de rastreamento de humor com monitoramento ambiental e alertas
+  version: 1.0.0
+  contact:
+    name: MoodTracker Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.moodtracker.com
+    description: Production server (when deployed)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT token format: Bearer <token>"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        erro:
+          type: string
+          description: Error message
+        erros:
+          type: array
+          items:
+            type: object
+          description: Validation errors array
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User unique identifier
+        nome:
+          type: string
+          minLength: 3
+          description: User full name
+        email:
+          type: string
+          format: email
+          description: User email (unique)
+        role:
+          type: string
+          enum: [user, admin]
+          description: User role/permission level
+        criadoEm:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        atualizadoEm:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT authentication token
+        usuario:
+          $ref: '#/components/schemas/User'
+
+    MoodEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          description: User who created the entry
+        humor:
+          type: string
+          enum: [feliz, neutro, ansioso, cansado]
+          description: Mood state
+        comentario:
+          type: string
+          nullable: true
+          description: Optional mood comment
+        dataHora:
+          type: string
+          format: date-time
+
+    MoodResponse:
+      type: object
+      properties:
+        totalEntries:
+          type: integer
+        mediaSemanal:
+          type: number
+          format: float
+          description: Average mood score for the past week (1-4)
+        ultimoRegistro:
+          $ref: '#/components/schemas/MoodEntry'
+          nullable: true
+        registros:
+          type: array
+          items:
+            $ref: '#/components/schemas/MoodEntry'
+
+    EnvironmentData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        temperatura:
+          type: number
+          format: float
+          description: Temperature in Celsius
+        luminosidade:
+          type: number
+          format: float
+          description: Light level in lux
+        ruido:
+          type: number
+          format: float
+          description: Noise level in decibels
+        dataHora:
+          type: string
+          format: date-time
+
+    EnvironmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        temp:
+          type: number
+          format: float
+        luz:
+          type: number
+          format: float
+        ruido:
+          type: number
+          format: float
+        dataHora:
+          type: string
+          format: date-time
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+          enum: [TEMPERATURA, ILUMINAÇÃO, RUÍDO]
+          description: Alert type
+        mensagem:
+          type: string
+          description: Alert message
+        dataHora:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          nullable: true
+          description: User ID if alert is specific, null if general
+        lido:
+          type: integer
+          enum: [0, 1]
+          description: 0=unread, 1=read
+
+    AlertsResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        alertas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [OK]
+        timestamp:
+          type: string
+          format: date-time
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      tags:
+        - System
+      description: Verifies API is running
+      responses:
+        '200':
+          description: API is operational
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+
+  /auth/register:
+    post:
+      summary: Register new user
+      tags:
+        - Authentication
+      description: Creates a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - email
+                - senha
+              properties:
+                nome:
+                  type: string
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                senha:
+                  type: string
+                  minLength: 6
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: User login
+      tags:
+        - Authentication
+      description: Authenticates user and returns JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - senha
+              properties:
+                email:
+                  type: string
+                  format: email
+                senha:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+
+  /auth/me:
+    get:
+      summary: Get current user
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      description: Returns authenticated user info
+      responses:
+        '200':
+          description: User data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuario:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+
+  /auth/delete-account:
+    delete:
+      summary: Delete user account
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      description: Permanently deletes user account and all associated data
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+
+  /mood:
+    post:
+      summary: Register mood entry
+      tags:
+        - Mood
+      security:
+        - BearerAuth: []
+      description: Creates a new mood registration for authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - humor
+              properties:
+                humor:
+                  type: string
+                  enum: [feliz, neutro, ansioso, cansado]
+                comentario:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Mood entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoodEntry'
+        '400':
+          description: Invalid mood value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mood/user/{userId}:
+    get:
+      summary: Get user mood entries
+      tags:
+        - Mood
+      security:
+        - BearerAuth: []
+      description: Retrieves mood entries for specified user (own or admin access only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Mood entries retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoodResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mood/{id}:
+    delete:
+      summary: Delete mood entry
+      tags:
+        - Mood
+      security:
+        - BearerAuth: []
+      description: Deletes a mood entry (owner or admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Entry deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Access denied
+        '404':
+          description: Entry not found
+
+  /environment:
+    post:
+      summary: Submit environmental sensor data
+      tags:
+        - Environment
+      description: IoT sensors submit environmental data (no auth required for simulator)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - temp
+                - luz
+                - ruido
+              properties:
+                temp:
+                  type: number
+                  format: float
+                  description: Temperature in °C
+                luz:
+                  type: number
+                  format: float
+                  description: Light level in lux
+                ruido:
+                  type: number
+                  format: float
+                  description: Noise level in dB
+                horario:
+                  type: string
+                  format: date-time
+                  description: Optional timestamp
+      responses:
+        '201':
+          description: Data stored, alerts generated if applicable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentResponse'
+        '400':
+          description: Invalid data format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /environment/latest:
+    get:
+      summary: Get latest environmental data (Admin only)
+      tags:
+        - Environment
+      security:
+        - BearerAuth: []
+      description: Retrieves the most recent sensor reading
+      responses:
+        '200':
+          description: Latest data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentData'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Admin access required
+        '404':
+          description: No data available
+
+  /environment/current:
+    get:
+      summary: Get current environmental data
+      tags:
+        - Environment
+      security:
+        - BearerAuth: []
+      description: Retrieves the most recent sensor reading (authenticated users)
+      responses:
+        '200':
+          description: Current data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentData'
+        '401':
+          description: Unauthorized
+        '404':
+          description: No data available
+
+  /alerts:
+    get:
+      summary: Get alerts
+      tags:
+        - Alerts
+      security:
+        - BearerAuth: []
+      description: Retrieves alerts (all for admin, personal+general for users)
+      responses:
+        '200':
+          description: Alerts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertsResponse'
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Create alert (Admin only)
+      tags:
+        - Alerts
+      security:
+        - BearerAuth: []
+      description: Creates a new alert manually
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tipo
+                - mensagem
+              properties:
+                tipo:
+                  type: string
+                mensagem:
+                  type: string
+                userId:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '400':
+          description: Missing required fields
+        '401':
+          description: Unauthorized
+        '403':
+          description: Admin access required
+
+tags:
+  - name: System
+    description: System health and status
+  - name: Authentication
+    description: User registration, login, and profile
+  - name: Mood
+    description: Mood tracking and history
+  - name: Environment
+    description: Environmental sensor data
+  - name: Alerts
+    description: System and environmental alerts

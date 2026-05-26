@@ -1,0 +1,29 @@
+{
+  "name": "mood-tracker-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MoodTracker - App mobile com monitoramento ambiental e análise de humor",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install-all": "cd frontend && yarn && cd ../backend && yarn",
+    "dev-backend": "cd backend && yarn dev",
+    "dev-frontend": "cd frontend && yarn start",
+    "dev": "yarn dev-backend",
+    "dev-windows": "start \"Backend\" cmd /k \"cd backend && yarn dev\" & start \"Frontend\" cmd /k \"cd frontend && yarn start\"",
+    "test": "cd backend && yarn test",
+    "test-coverage": "cd backend && yarn test -- --coverage",
+    "simulate": "cd backend && yarn simulate",
+    "docs": "echo Documentacao disponivel em ./documentacao/"
+  },
+  "keywords": [
+    "mood-tracking",
+    "mental-health",
+    "ambient-monitoring"
+  ],
+  "author": "Grupo MoodTracker",
+  "license": "MIT",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

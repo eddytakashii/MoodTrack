@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2025-11-22" agent="5.0" version="24.0.0">
+  <diagram id="moodtracker-er" name="MoodTracker ER Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Entity: users -->
+        <mxCell id="users-entity" value="USERS" style="text;strokeColor=#000000;strokeWidth=2;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;textAlign=center;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="users-attrs" value="id: TEXT (PK)&#10;nome: TEXT NOT NULL&#10;email: TEXT UNIQUE NOT NULL&#10;senhaHash: TEXT NOT NULL&#10;role: TEXT (user|admin)&#10;criadoEm: TEXT NOT NULL&#10;atualizadoEm: TEXT NOT NULL" style="text;strokeColor=#000000;strokeWidth=1;fontSize=11;align=left;fillColor=#f5f5f5;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="90" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Entity: mood_entries -->
+        <mxCell id="mood_entries-entity" value="MOOD_ENTRIES" style="text;strokeColor=#000000;strokeWidth=2;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;textAlign=center;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="370" y="50" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mood_entries-attrs" value="id: TEXT (PK)&#10;userId: TEXT (FK)&#10;humor: TEXT (feliz|neutro|&#10;  ansioso|cansado)&#10;comentario: TEXT (NULL)&#10;dataHora: TEXT NOT NULL" style="text;strokeColor=#000000;strokeWidth=1;fontSize=11;align=left;fillColor=#f5f5f5;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="90" width="180" height="110" as="geometry" />
+        </mxCell>
+        
+        <!-- Entity: environment_data -->
+        <mxCell id="env_data-entity" value="ENVIRONMENT_DATA" style="text;strokeColor=#000000;strokeWidth=2;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;textAlign=center;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="690" y="50" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="env_data-attrs" value="id: TEXT (PK)&#10;temperatura: REAL (°C)&#10;luminosidade: REAL (lux)&#10;ruido: REAL (dB)&#10;dataHora: TEXT NOT NULL" style="text;strokeColor=#000000;strokeWidth=1;fontSize=11;align=left;fillColor=#f5f5f5;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="690" y="90" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Entity: alerts -->
+        <mxCell id="alerts-entity" value="ALERTS" style="text;strokeColor=#000000;strokeWidth=2;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;textAlign=center;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="230" y="320" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="alerts-attrs" value="id: TEXT (PK)&#10;tipo: TEXT (TEMPERATURA|&#10;  ILUMINAÇÃO|RUÍDO)&#10;mensagem: TEXT NOT NULL&#10;dataHora: TEXT NOT NULL&#10;userId: TEXT (FK, NULL)&#10;lido: INTEGER (0|1)" style="text;strokeColor=#000000;strokeWidth=1;fontSize=11;align=left;fillColor:#f5f5f5;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="360" width="180" height="110" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationships -->
+        
+        <!-- users -> mood_entries (1:N) -->
+        <mxCell id="rel-users-mood" value="Registra" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=white;endArrow=crow;startArrow=none;strokeWidth=2;" edge="1" parent="1" source="users-entity" target="mood_entries-entity">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="230" y="130" as="sourcePoint" />
+            <mxPoint x="370" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- users -> alerts (1:N) Optional -->
+        <mxCell id="rel-users-alerts" value="Gera (opcional)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=white;endArrow=crow;startArrow=none;strokeWidth=2;dashed=1;" edge="1" parent="1" source="users-entity" target="alerts-entity">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="210" as="sourcePoint" />
+            <mxPoint x="320" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-title" value="Legenda" style="text;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="50" y="550" width="100" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-pk" value="PK = Primary Key" style="text;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="50" y="580" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-fk" value="FK = Foreign Key" style="text;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="50" y="600" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-rel" value="Relação 1:N (uma entidade para muitas)" style="text;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="50" y="620" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationships Notes -->
+        <mxCell id="rel-notes" value="Relacionamentos:&#10;• users (1) → mood_entries (N): Cada usuário registra múltiplos humores&#10;• users (1) → alerts (N, opcional): Alertas podem ser gerais ou específicos&#10;• environment_data: Tabela independente de sensores&#10;&#10;Constraints:&#10;• CASCADE DELETE: Deletar usuário remove todos seus registros&#10;• UNIQUE email: Previne duplicação&#10;• CHECK humor: Apenas valores permitidos&#10;• Indexes: Otimização em userId e dataHora" style="text;fontSize=10;align=left;fillColor=#ffffcc;strokeColor=#ffaa00;strokeWidth=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="700" width="820" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

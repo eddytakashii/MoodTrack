@@ -1,0 +1,197 @@
+{
+  "IoT Simulator - Example Payloads": "MoodTracker Environmental Sensor Data",
+  "description": "Exemplos de payloads JSON enviados pelo simulador de sensores IoT para o endpoint POST /environment",
+  
+  "example_1_normal_conditions": {
+    "description": "Condições ambientais normais",
+    "payload": {
+      "temp": 24.5,
+      "luz": 350,
+      "ruido": 55
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": []
+    }
+  },
+
+  "example_2_high_temperature": {
+    "description": "Temperatura alta (>28°C) gera alerta",
+    "payload": {
+      "temp": 30.2,
+      "luz": 280,
+      "ruido": 60
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": [
+        {
+          "tipo": "TEMPERATURA",
+          "mensagem": "Ambiente quente demais, pode causar desconforto."
+        }
+      ]
+    }
+  },
+
+  "example_3_low_light": {
+    "description": "Iluminação fraca (<50 lux) gera alerta",
+    "payload": {
+      "temp": 22.0,
+      "luz": 35,
+      "ruido": 50
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": [
+        {
+          "tipo": "ILUMINAÇÃO",
+          "mensagem": "Iluminação fraca, risco de fadiga ocular."
+        }
+      ]
+    }
+  },
+
+  "example_4_high_noise": {
+    "description": "Ruído alto (>70 dB) gera alerta",
+    "payload": {
+      "temp": 23.5,
+      "luz": 400,
+      "ruido": 78
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": [
+        {
+          "tipo": "RUÍDO",
+          "mensagem": "Ambiente barulhento, foco prejudicado."
+        }
+      ]
+    }
+  },
+
+  "example_5_critical_conditions": {
+    "description": "Múltiplas condições críticas - gera 3 alertas",
+    "payload": {
+      "temp": 32.0,
+      "luz": 25,
+      "ruido": 82
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": [
+        {
+          "tipo": "TEMPERATURA",
+          "mensagem": "Ambiente quente demais, pode causar desconforto."
+        },
+        {
+          "tipo": "ILUMINAÇÃO",
+          "mensagem": "Iluminação fraca, risco de fadiga ocular."
+        },
+        {
+          "tipo": "RUÍDO",
+          "mensagem": "Ambiente barulhento, foco prejudicado."
+        }
+      ]
+    }
+  },
+
+  "example_6_with_timestamp": {
+    "description": "Payload com timestamp customizado (opcional)",
+    "payload": {
+      "temp": 26.0,
+      "luz": 320,
+      "ruido": 65,
+      "horario": "2025-11-22T15:30:00.000Z"
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": []
+    }
+  },
+
+  "example_7_alternative_field_names": {
+    "description": "Campos alternativos suportados (temperatura, luminosidade)",
+    "payload": {
+      "temperatura": 25.0,
+      "luminosidade": 300,
+      "ruido": 58
+    },
+    "expected_response": {
+      "status": 201,
+      "alerts": []
+    }
+  },
+
+  "api_endpoints": {
+    "submit_data": {
+      "method": "POST",
+      "url": "http://localhost:3000/environment",
+      "auth": "none (simulator doesn't need token)",
+      "fields": {
+        "temp": "number (°C), required",
+        "luz": "number (lux), required",
+        "ruido": "number (dB), required",
+        "horario": "string (ISO 8601), optional (defaults to now)"
+      }
+    },
+    "get_latest": {
+      "method": "GET",
+      "url": "http://localhost:3000/environment/latest",
+      "auth": "JWT token, admin role required"
+    },
+    "get_current": {
+      "method": "GET",
+      "url": "http://localhost:3000/environment/current",
+      "auth": "JWT token, any authenticated user"
+    }
+  },
+
+  "alert_thresholds": {
+    "temperatura": {
+      "threshold": 28,
+      "unit": "°C",
+      "condition": "greater than",
+      "alert_type": "TEMPERATURA"
+    },
+    "luminosidade": {
+      "threshold": 50,
+      "unit": "lux",
+      "condition": "less than",
+      "alert_type": "ILUMINAÇÃO"
+    },
+    "ruido": {
+      "threshold": 70,
+      "unit": "dB",
+      "condition": "greater than",
+      "alert_type": "RUÍDO"
+    }
+  },
+
+  "simulator_modes": {
+    "cycle": {
+      "description": "Executa 5 ciclos de teste (normal, quente, pouca luz, muito barulho, crítico)",
+      "command": "npm run simulate",
+      "duration": "~2.5 minutos"
+    },
+    "continuous": {
+      "description": "Envia dados continuamente a cada 30 segundos",
+      "command": "npm run simulate continuous",
+      "duration": "indefinido até parar (Ctrl+C)"
+    }
+  },
+
+  "curl_examples": {
+    "submit_normal": "curl -X POST http://localhost:3000/environment -H 'Content-Type: application/json' -d '{\"temp\": 24, \"luz\": 350, \"ruido\": 55}'",
+    "submit_alert": "curl -X POST http://localhost:3000/environment -H 'Content-Type: application/json' -d '{\"temp\": 31, \"luz\": 40, \"ruido\": 75}'",
+    "get_latest": "curl -H 'Authorization: Bearer YOUR_ADMIN_TOKEN' http://localhost:3000/environment/latest",
+    "get_alerts": "curl -H 'Authorization: Bearer YOUR_TOKEN' http://localhost:3000/alerts"
+  },
+
+  "notes": {
+    "1": "Todos os payloads são enviados com Content-Type: application/json",
+    "2": "Campos numéricos são validados (temperatura: -50 a 50, luminosidade: 0 a 1000, ruído: 0 a 150)",
+    "3": "Alertas são criados automaticamente no BD quando thresholds são ultrapassados",
+    "4": "Cada ciclo do simulator envia 3 pacotes por cenário (15 requests totais)",
+    "5": "O simulador aguarda 30 segundos entre cada envio de dados"
+  }
+}
