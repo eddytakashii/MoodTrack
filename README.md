@@ -21,7 +21,7 @@ Camada de Dados -> SQLite com TypeORM para persistência, relacionamentos e migr
 Integração IoT
 
 Meu papel
-Fui responsavel pela integração com API e integração front-end usando node.js
+Fui responsavel pelo simulação com eventos aplicada ao iot utilizando Typescript uma parte do front-end usando react.
 
 
 
